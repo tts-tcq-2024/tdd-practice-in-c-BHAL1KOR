@@ -133,7 +133,7 @@ void CheckForNegativeNumbers(const char* numbers) {
         }
         ptr++;
     }
-    printExeptionIfNegativeNumber(foundNegative, message)
+    printExeptionIfNegativeNumber(foundNegative, message);
 
 }
 
