@@ -104,14 +104,26 @@ DelimiterType delimiterHandlers[] = {
 };
 
 
-int add(const char* numbers) {
-    int result = ReturnZeroForEmptyOrNullOrZeroInput(numbers);
-    if (result != CONDITION_NOT_MEET) return result;
-
+int HandleDelimiters(const char* numbers) {
     for (int i = 0; i < sizeof(delimiterHandlers) / sizeof(DelimiterType); ++i) {
-        result = delimiterHandlers[i].handler(numbers);
+        int result = delimiterHandlers[i].handler(numbers);
         if (result != CONDITION_NOT_MEET) return result;
     }
+    return CONDITION_NOT_MEET;
+}
+
+void CheckForNegativeNumbers(const char* numbers) {
+
+}
+
+int add(const char* numbers) {
+    int result = CheckEmptyOrNullOrZeroInput(numbers);
+    if (result != CONDITION_NOT_MEET) return result;
+
+   // CheckForNegativeNumbers(numbers);
+
+    result = HandleDelimiters(numbers);
+    if (result != CONDITION_NOT_MEET) return result;
 
     return SumWithDefaultDelimiter(numbers);
 }
