@@ -1,12 +1,21 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <assert.h>
+#include <stdbool.h>
 
-#define CONDITION_NOT_MEET -1
+bool isNullOrEmpty(const char* str) {
+    return str == NULL || strlen(str) == 0;
+}
+
+bool isZero(const char* str) {
+    return strcmp(str, "0") == 0;
+}
 
 int ReturnZeroForEmptyOrNullOrZeroInput(const char* numbers) {
-    return (numbers == NULL || strlen(numbers) == 0 || strcmp(numbers, "0") == 0) ? 0 : CONDITION_NOT_MEET;
+    if (isNullOrEmpty(numbers) || isZero(numbers)) {
+        return 0;
+    }
+    return CONDITION_NOT_MEET;
 }
 
 int IgnoreNumbersGreaterThan1000(int num) {
