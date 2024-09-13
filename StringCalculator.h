@@ -6,10 +6,7 @@
 #define CONDITION_NOT_MEET -1
 
 int ReturnZeroForEmptyOrNullOrZeroInput(const char* numbers) {
-    if (numbers == NULL || strlen(numbers) == 0 || strcmp(numbers, "0") == 0) {
-        return 0;
-    }
-    return CONDITION_NOT_MEET; 
+    return (numbers == NULL || strlen(numbers) == 0 || strcmp(numbers, "0") == 0) ? 0 : CONDITION_NOT_MEET;
 }
 
 int IgnoreNumbersGreaterThan1000(int num) {
