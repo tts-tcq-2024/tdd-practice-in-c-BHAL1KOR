@@ -12,13 +12,6 @@ typedef struct {
     DelimiterHandler handler;
 } DelimiterType;
 
-DelimiterType delimiterHandlers[] = {
-    {'/', HandleCustomDelimiter},
-    {'\n', HandleNewlineDelimiter},
-    {',', HandleDefaultDelimiter}
-};
-
-
 bool isNullOrEmpty(const char* str) {
     return str == NULL || strlen(str) == 0;
 }
@@ -103,6 +96,12 @@ int HandleNewlineDelimiter(const char* numbers) {
 int HandleDefaultDelimiter(const char* numbers) {
     return SumWithDefaultDelimiter(numbers);
 }
+
+DelimiterType delimiterHandlers[] = {
+    {'/', HandleCustomDelimiter},
+    {'\n', HandleNewlineDelimiter},
+    {',', HandleDefaultDelimiter}
+};
 
 
 int add(const char* numbers) {
