@@ -7,16 +7,31 @@
 
 typedef int (*DelimiterHandler)(const char*);
 
+DelimiterType delimiterHandlers[] = {
+    {'/', HandleCustomDelimiter},
+    {'\n', HandleNewlineDelimiter},
+    {',', HandleDefaultDelimiter}
+};
+
+
 typedef struct {
     char delimiter;
     DelimiterHandler handler;
 } DelimiterType;
 
+bool isNullOrEmpty(const char* str) {
+    return str == NULL || strlen(str) == 0;
+}
+
+bool isZero(const char* str) {
+    return strcmp(str, "0") == 0;
+}
+
 int ReturnZeroForEmptyOrNullOrZeroInput(const char* numbers) {
-    if (numbers == NULL || strlen(numbers) == 0 || strcmp(numbers, "0") == 0) {
+    if (isNullOrEmpty(numbers) || isZero(numbers)) {
         return 0;
     }
-    return CONDITION_NOT_MEET; 
+    return CONDITION_NOT_MEET;
 }
 
 int IgnoreNumbersGreaterThan1000(int num) {
@@ -89,11 +104,6 @@ int HandleDefaultDelimiter(const char* numbers) {
     return SumWithDefaultDelimiter(numbers);
 }
 
-DelimiterType delimiterHandlers[] = {
-    {'/', HandleCustomDelimiter},
-    {'\n', HandleNewlineDelimiter},
-    {',', HandleDefaultDelimiter}
-};
 
 int add(const char* numbers) {
     int result = ReturnZeroForEmptyOrNullOrZeroInput(numbers);
