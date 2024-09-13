@@ -112,6 +112,12 @@ int CheckForDelimeterAndComputeSum(const char* numbers) {
     return CONDITION_NOT_MEET;
 }
 
+void printExeptionForNegativeNumber(int foundNegative, const char* message)
+    if (foundNegative) {
+        fprintf(stderr, "%s\n", message);
+        exit(EXIT_FAILURE);
+    }
+}
 void CheckForNegativeNumbers(const char* numbers) {
     char message[256] = "negatives not allowed: ";
     int foundNegative = 0;
@@ -127,11 +133,8 @@ void CheckForNegativeNumbers(const char* numbers) {
         }
         ptr++;
     }
+    printExeptionIfNegativeNumber(foundNegative, message)
 
-    if (foundNegative) {
-        fprintf(stderr, "%s\n", message);
-        exit(EXIT_FAILURE);
-    }
 }
 
 int add(const char* numbers) {
