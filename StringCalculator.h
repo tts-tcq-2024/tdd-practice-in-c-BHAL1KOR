@@ -263,13 +263,4 @@ int add(const char* numbers) {
     if (result != CONDITION_NOT_MEET) return result;
 
     return SumWithDefaultDelimiter(numbers);
-}(numbers);
-    if (result != CONDITION_NOT_MEET) return result;
-
-   // CheckForNegativeNumbers(numbers);
-
-    result = HandleDelimiters(numbers);
-    if (result != CONDITION_NOT_MEET) return result;
-
-    return SumWithDefaultDelimiter(numbers);
 }
