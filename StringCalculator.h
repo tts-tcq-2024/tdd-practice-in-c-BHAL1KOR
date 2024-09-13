@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#define CONDITION_NOT_MEET -1
+
 int is_empty_or_null(const char* numbers) {
     return numbers == NULL || strlen(numbers) == 0;
 }
