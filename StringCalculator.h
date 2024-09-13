@@ -112,7 +112,7 @@ int CheckForDelimeterAndComputeSum(const char* numbers) {
     return CONDITION_NOT_MEET;
 }
 
-void printExeptionIfNegativeNumber(int foundNegative, const char* message)
+void printExeptionIfNegativeNumber(int foundNegative, const char* message){
     if (foundNegative) {
         fprintf(stderr, "%s\n", message);
         exit(EXIT_FAILURE);
