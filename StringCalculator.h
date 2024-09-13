@@ -7,17 +7,17 @@
 
 typedef int (*DelimiterHandler)(const char*);
 
+typedef struct {
+    char delimiter;
+    DelimiterHandler handler;
+} DelimiterType;
+
 DelimiterType delimiterHandlers[] = {
     {'/', HandleCustomDelimiter},
     {'\n', HandleNewlineDelimiter},
     {',', HandleDefaultDelimiter}
 };
 
-
-typedef struct {
-    char delimiter;
-    DelimiterHandler handler;
-} DelimiterType;
 
 bool isNullOrEmpty(const char* str) {
     return str == NULL || strlen(str) == 0;
