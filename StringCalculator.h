@@ -3,104 +3,57 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#define CONDITION_NOT_MEET -1
-
-int CheckEmptyOrNullInput(const char* numbers) {
-    if (numbers == NULL || strlen(numbers) == 0) {
-        return 0;
-    }
-    return CONDITION_NOT_MEET; 
+int is_empty_or_null(const char* numbers) {
+    return numbers == NULL || strlen(numbers) == 0;
 }
 
-int CheckSingleZeroInput(const char* numbers) {
-    if (strcmp(numbers, "0") == 0) {
-        return 0;
-    }
-    return CONDITION_NOT_MEET; 
+int is_single_zero(const char* numbers) {
+    return strcmp(numbers, "0") == 0;
 }
 
-int IgnoreNumbersGreaterThan1000(int num) {
+int ignore_numbers_greater_than_1000(int num) {
     return num <= 1000 ? num : 0;
 }
 
-int SumWithDefaultDelimiter(const char* numbers) {
+int sum_with_delimiter(const char* numbers, char delimiter) {
     int sum = 0;
-    char* modifiableNums = strdup(numbers);
-    char* token = strtok(modifiableNums, ",");
-    while (token != NULL) {
-        int num = atoi(token);
-        sum += IgnoreNumbersGreaterThan1000(num);
-        token = strtok(NULL, ",");
-    }
-    free(modifiableNums);
-    return sum;
-}
-
-int SumWithNewlineDelimiter(const char* numbers) {
-    int sum = 0;
-    char* modifiableNums = strdup(numbers);
-    for (char* p = modifiableNums; *p; ++p) {
-        if (*p == '\n') *p = ',';
-    }
-    char* token = strtok(modifiableNums, ",");
-    while (token != NULL) {
-        int num = atoi(token);
-        sum += IgnoreNumbersGreaterThan1000(num);
-        token = strtok(NULL, ",");
-    }
-    free(modifiableNums);
-    return sum;
-}
-
-int SumWithCustomDelimiter(const char* numbers, char delimiter) {
-    int sum = 0;
-    char* modifiableNums = strdup(numbers);
-    for (char* p = modifiableNums; *p; ++p) {
-        if (*p == '\n') *p = delimiter;
-    }
+    char* modifiable_nums = strdup(numbers);
     char* token = strtok(modifiableNums, &delimiter);
     while (token != NULL) {
         int num = atoi(token);
-        sum += IgnoreNumbersGreaterThan1000(num);
+        sum += ignore_numbers_greater_than_1000(num);
         token = strtok(NULL, &delimiter);
     }
     free(modifiableNums);
     return sum;
 }
 
-int DetectCustomDelimiter(const char* numbers) {
-    if (strncmp(numbers, "//", 2) == 0) {
-        return numbers[2];
-    }
-    return CONDITION_NOT_MEET;
+int detect_custom_delimiter(const char* numbers) {
+    return strncmp(numbers, "//", 2) == 0 ? numbers[2] : CONDITION_NOT_MEET;
 }
 
-int DetectNewlineDelimiter(const char* numbers) {
-    if (strchr(numbers, '\n') != NULL) {
-        return 1;
-    }
-    return CONDITION_NOT_MEET;
+int detect_newline_delimiter(const char* numbers) {
+    return strchr(numbers, '\n') != NULL;
 }
 
 int add(const char* numbers) {
     int result;
 
-    result = CheckEmptyOrNullInput(numbers);
-    if (result != CONDITION_NOT_MEET) {
-        return result;
-    }
-    result = CheckSingleZeroInput(numbers);
-    if (result != CONDITION_NOT_MEET) {
-        return result;
-    }
-    result = DetectCustomDelimiter(numbers);
-    if (result != CONDITION_NOT_MEET) {
-        return SumWithCustomDelimiter(numbers + 4, result);
-    }
-    result = DetectNewlineDelimiter(numbers);
-    if (result != CONDITION_NOT_MEET) {
-        return SumWithNewlineDelimiter(numbers);
+    if (is_empty_or_null(numbers)) {
+        return 0;
     }
 
-    return SumWithDefaultDelimiter(numbers);
+    if (is_single_zero(numbers)) {
+        return 0;
+    }
+
+    if (detect_custom_delimiter(numbers)) {
+        return sum_with_delimiter(numbers + 4, detect_custom_delimiter(numbers));
+    }
+
+    if (detect_newline_delimiter(numbers)) {
+        return sum_with_delimiter(numbers, '\n');
+    }
+
+    return sum_with_delimiter(numbers, ',');
 }
