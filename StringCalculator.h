@@ -1,126 +1,26 @@
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
-#include <assert.h>
-#include <stdbool.h>
+#include <string.h>
 
 #define CONDITION_NOT_MEET -1
 
-typedef int (*DelimiterHandler)(const char*);
-
-typedef struct {
-    char delimiter;
-    DelimiterHandler handler;
-} DelimiterType;
-
-bool isNullOrEmpty(const char* str) {
-    return str == NULL || strlen(str) == 0;
-}
-
-bool isZero(const char* str) {
-    return strcmp(str, "0") == 0;
+void printExeptionIfNegativeNumber(int foundNegative, const char* message) {
+    if (foundNegative) {
+        printf("Negatives not allowed: %s\n", message);
+        exit(1);
+    }
 }
 
 int CheckEmptyOrNullOrZeroInput(const char* numbers) {
-    if (isNullOrEmpty(numbers) || isZero(numbers)) {
+    if (numbers == NULL || *numbers == '\0') {
         return 0;
     }
     return CONDITION_NOT_MEET;
 }
 
-int IgnoreNumbersGreaterThan1000(int num) {
-    return num <= 1000 ? num : 0;
-}
-
-char* ReplaceNewlineWithDelimiter(const char* numbers, const char* delimiter) {
-    char* modifiableNums = strdup(numbers);
-    char* p = modifiableNums;
-    while ((p = strstr(p, "\n")) != NULL) {
-        strncpy(p, delimiter, strlen(delimiter));
-        p += strlen(delimiter);
-    }
-    return modifiableNums;
-}
-
-int SumWithDelimiter(const char* numbers, const char* delimiter) {
-    int sum = 0;
-    char* modifiableNums = ReplaceNewlineWithDelimiter(numbers, delimiter);
-    char* token = strtok(modifiableNums, delimiter);
-    while (token != NULL) {
-        int num = atoi(token);
-        sum += IgnoreNumbersGreaterThan1000(num);
-        token = strtok(NULL, delimiter);
-    }
-    free(modifiableNums);
-    return sum;
-}
-
-int SumWithDefaultDelimiter(const char* numbers) {
-    return SumWithDelimiter(numbers, ",");
-}
-
-int SumWithNewlineDelimiter(const char* numbers) {
-    return SumWithDelimiter(numbers, ",");
-}
-
-int SumWithCustomDelimiter(const char* numbers, const char* delimiter) {
-    return SumWithDelimiter(numbers, delimiter);
-}
-
-int DetectCustomDelimiter(const char* numbers, char* delimiter) {
-    if (strncmp(numbers, "//[", 3) == 0) {
-        const char* end = strstr(numbers, "]\n");
-        if (end != NULL) {
-            strncpy(delimiter, numbers + 3, end - (numbers + 3));
-            delimiter[end - (numbers + 3)] = '\0';
-            return 1;
-        }
-    }
-    return CONDITION_NOT_MEET;
-}
-
-int HandleCustomDelimiter(const char* numbers) {
-    char delimiter[100] = {0};
-    if (DetectCustomDelimiter(numbers, delimiter) != CONDITION_NOT_MEET) {
-        return SumWithCustomDelimiter(numbers + strlen(delimiter) + 4, delimiter);
-    }
-    return CONDITION_NOT_MEET;
-}
-
-int HandleNewlineDelimiter(const char* numbers) {
-    if (strchr(numbers, '\n') != NULL) {
-        return SumWithNewlineDelimiter(numbers);
-    }
-    return CONDITION_NOT_MEET;
-}
-
-int HandleDefaultDelimiter(const char* numbers) {
-    return SumWithDefaultDelimiter(numbers);
-}
-
-DelimiterType delimiterHandlers[] = {
-    {'/', HandleCustomDelimiter},
-    {'\n', HandleNewlineDelimiter},
-    {',', HandleDefaultDelimiter}
-};
-
-int CheckForDelimeterAndComputeSum(const char* numbers) {
-    for (int i = 0; i < sizeof(delimiterHandlers) / sizeof(DelimiterType); ++i) {
-        int result = delimiterHandlers[i].handler(numbers);
-        if (result != CONDITION_NOT_MEET) return result;
-    }
-    return CONDITION_NOT_MEET;
-}
-
-void printExeptionIfNegativeNumber(int foundNegative, const char* message){
-    if (foundNegative) {
-        fprintf(stderr, "%s\n", message);
-        exit(EXIT_FAILURE);
-    }
-}
 void CheckForNegativeNumbers(const char* numbers) {
-    char message[256] = "negatives not allowed: ";
     int foundNegative = 0;
+    char message[100] = "";
     char temp[10];
     const char* ptr = numbers;
 
@@ -134,7 +34,72 @@ void CheckForNegativeNumbers(const char* numbers) {
         ptr++;
     }
     printExeptionIfNegativeNumber(foundNegative, message);
+}
 
+int SumWithCustomDelimiter(const char* numbers, const char* delimiter) {
+    int sum = 0;
+    char* token;
+    char* numbersCopy = strdup(numbers);
+    token = strtok(numbersCopy, delimiter);
+    while (token != NULL) {
+        sum += atoi(token);
+        token = strtok(NULL, delimiter);
+    }
+    free(numbersCopy);
+    return sum;
+}
+
+int DetectCustomDelimiter(const char* numbers, char* delimiter) {
+    if (strncmp(numbers, "//", 2) == 0) {
+        const char* end = strstr(numbers, "\n");
+        if (end != NULL) {
+            strncpy(delimiter, numbers + 2, end - (numbers + 2));
+            delimiter[end - (numbers + 2)] = '\0';
+            return 1;
+        }
+    }
+    return CONDITION_NOT_MEET;
+}
+
+int HandleCustomDelimiter(const char* numbers) {
+    char delimiter[100] = {0};
+    if (DetectCustomDelimiter(numbers, delimiter) != CONDITION_NOT_MEET) {
+        return SumWithCustomDelimiter(numbers + strlen(delimiter) + 3, delimiter);
+    }
+    return CONDITION_NOT_MEET;
+}
+
+int HandleNewlineDelimiter(const char* numbers) {
+    return CONDITION_NOT_MEET; // Placeholder for handling newline delimiter
+}
+
+int HandleDefaultDelimiter(const char* numbers) {
+    return CONDITION_NOT_MEET; // Placeholder for handling default delimiter
+}
+
+int CheckForDelimeterAndComputeSum(const char* numbers) {
+    int result = HandleCustomDelimiter(numbers);
+    if (result != CONDITION_NOT_MEET) {
+        return result;
+    }
+    result = HandleNewlineDelimiter(numbers);
+    if (result != CONDITION_NOT_MEET) {
+        return result;
+    }
+    return HandleDefaultDelimiter(numbers);
+}
+
+int SumWithDefaultDelimiter(const char* numbers) {
+    int sum = 0;
+    char* token;
+    char* numbersCopy = strdup(numbers);
+    token = strtok(numbersCopy, ",");
+    while (token != NULL) {
+        sum += atoi(token);
+        token = strtok(NULL, ",");
+    }
+    free(numbersCopy);
+    return sum;
 }
 
 int add(const char* numbers) {
@@ -144,7 +109,7 @@ int add(const char* numbers) {
     CheckForNegativeNumbers(numbers);
 
     result = CheckForDelimeterAndComputeSum(numbers);
-    if (result != CONDITION_NOT_MEET ) return result;
+    if (result != CONDITION_NOT_MEET) return result;
 
     return SumWithDefaultDelimiter(numbers);
 }
