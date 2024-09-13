@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#define CONDITION_NOT_MEET -1
+
 bool isNullOrEmpty(const char* str) {
     return str == NULL || strlen(str) == 0;
 }
