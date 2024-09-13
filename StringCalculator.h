@@ -20,7 +20,7 @@ int HandleSingleZeroInput(const char* numbers) {
 
 int add(const char* numbers)
 {
-    if(HandleEmptyOrNullInput(numbers) * HandleSingleZeroInput(number))
+    if(HandleEmptyOrNullInput(numbers) * HandleSingleZeroInput(numbers))
     {
         return 0;
     }
