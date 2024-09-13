@@ -141,7 +141,7 @@ int add(const char* numbers) {
     CheckForNegativeNumbers(numbers);
 
     result = CheckForDelimeterAndComputeSum(numbers);
-    if (result != CONDITION_NOT_MEet) return result;
+    if (result != CONDITION_NOT_MEET ) return result;
 
     return SumWithDefaultDelimiter(numbers);
 }
