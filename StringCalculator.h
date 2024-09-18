@@ -145,7 +145,7 @@ int add(const char* numbers) {
     };
 
     for (int i = 0; i < 4; i++) {
-        StringCalculatorVar[i].enabled = checks[i].checkFunction(numbers, modifiedNumbers);
+        StringCalculatorVar[i].enabled = StringCalculatorVar[i].checkFunction(numbers, modifiedNumbers);
         if (StringCalculatorVar[i].enabled) {
             ReturnValue = StringCalculatorVar[i].resultFunction(modifiedNumbers);
             break;
