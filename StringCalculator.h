@@ -20,7 +20,7 @@ int CheckForNegativeInput(const char* input) {
     return (strstr(input, "-") != NULL);
 }
 
-int printExeptionIfNegativeNumber(char* numbers) {
+void printExeptionIfNegativeNumber(char* numbers) {
     char buffer[256] = "Negative number found:";
     char* token = strtok(numbers, ",");
 
@@ -126,11 +126,10 @@ int ReturnZeroForEmptyInput(const char* numbers) {
 }
 
 //Executes this function when delimeter present in input is default , 
-int ReturnSumIfDefaultDelimeter(const char* numbers, int ReturnValue) {
-    if (ReturnValue == 0 ) {
-        ReturnValue = SumNumbers(numbers);
+void ReturnSumIfDefaultDelimeter(const char* numbers, int *ReturnValue) {
+    if (*ReturnValue == 0) {
+        *ReturnValue = SumNumbers(numbers);
     }
-    return ReturnValue;
 }
 
 int add(const char* numbers) {
@@ -151,7 +150,7 @@ int add(const char* numbers) {
             break;
         }
     }
-    ReturnSumIfDefaultDelimeter(numbers, ReturnValue);    
+    ReturnSumIfDefaultDelimeter(numbers, &ReturnValue);    
 
     free(modifiedNumbers);
     return ReturnValue;
