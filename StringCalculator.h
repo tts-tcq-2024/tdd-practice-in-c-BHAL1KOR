@@ -3,7 +3,6 @@
 #include <string.h>
 #include <ctype.h>
 
-
 int CheckEmptyInput(const char* input) {
     return (input == NULL || strcmp(input, "") == 0) ? 1 : 0;
 }
@@ -12,7 +11,7 @@ int CheckForNegativeInput(const char* input) {
     return (strstr(input, "-") != NULL);
 }
 
-void printExeptionIfNegativeNumber(char* numbers) {
+int printExeptionIfNegativeNumber(char* numbers) {
     char buffer[256] = "Negative number found:";
     char* token = strtok(numbers, ",");
 
@@ -27,9 +26,11 @@ void printExeptionIfNegativeNumber(char* numbers) {
     }
     strcat(buffer, "\n");
     printf("%s", buffer);
+    return 1;
 }
 
-// Function to get the actual delimiter specified with []
+
+// Function to get the actual delimiter specified within []
 void ExtractActualDelimiter(const char* delimiter, char* actualDelimiter) {
     size_t delimiterLength = strlen(delimiter);
 
@@ -145,19 +146,15 @@ int add(const char* numbers) {
     for (int i = 0; i < 4; i++) {
         checks[i].enabled = checks[i].checkFunction(numbers, modifiedNumbers);
         if (checks[i].enabled) {
-            if (checks[i].resultFunction != NULL) {
-                ReturnValue = checks[i].resultFunction(modifiedNumbers);
-            }
+            ReturnValue = checks[i].resultFunction(modifiedNumbers);
             break;
         }
     }
 
-    if (ReturnValue == 0 && !CheckForNegativeInput(numbers)) {
+    if (ReturnValue == 0 ) {
         ReturnValue = SumNumbers(numbers);
     }
 
     free(modifiedNumbers);
     return ReturnValue;
-
- 
 }
