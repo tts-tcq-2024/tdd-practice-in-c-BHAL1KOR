@@ -2,9 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <setjmp.h>
-jmp_buf buf;
-
 
 
 int CheckEmptyInput(const char* input) {
@@ -15,7 +12,24 @@ int CheckForNegativeInput(const char* input) {
     return (strstr(input, "-") != NULL);
 }
 
-// Function to get the actual delimiter speicfied within []
+void printExeptionIfNegativeNumber(char* numbers) {
+    char buffer[256] = "Negative number found:";
+    char* token = strtok(numbers, ",");
+
+    while (token != NULL) {
+        int num = atoi(token);
+        if (num < 0) {
+            char numStr[12];
+            sprintf(numStr, " %d", num);
+            strcat(buffer, numStr);
+        }
+        token = strtok(NULL, ",");
+    }
+    strcat(buffer, "\n");
+    printf("%s", buffer);
+}
+
+// Function to get the actual delimiter specified with []
 void ExtractActualDelimiter(const char* delimiter, char* actualDelimiter) {
     size_t delimiterLength = strlen(delimiter);
 
@@ -60,22 +74,28 @@ int CheckNewlineDelimiterAndReplaceWithComma(const char* input, char* modifiedIn
             break;
         }
     }
+    if (!foundNewline) {
+        strcpy(modifiedInput, input);
+    }
     return foundNewline;
 }
 
 int CheckForCustomDelimiterAndReplaceWithComma(const char* input, char* modifiedInput) {
     if (input[0] == '/' && input[1] == '/') {
         const char* delimiterEnd = strstr(input, "\n");
-        size_t delimiterLength = delimiterEnd - input - 2;
-        char* delimiter = (char*)malloc(delimiterLength + 1);
-        strncpy(delimiter, input + 2, delimiterLength);
-        delimiter[delimiterLength] = '\0';
-        strcpy(modifiedInput, delimiterEnd + 1);
-        printf("identified delimeter = %s\r\n", delimiter);
-        ReplaceDelimiterWithComma(modifiedInput, modifiedInput, delimiter);
-        free(delimiter);
-        return 1;
+        if (delimiterEnd != NULL) {
+            size_t delimiterLength = delimiterEnd - input - 2;
+            char* delimiter = (char*)malloc(delimiterLength + 1);
+            strncpy(delimiter, input + 2, delimiterLength);
+            delimiter[delimiterLength] = '\0';
+            strcpy(modifiedInput, delimiterEnd + 1);
+            ReplaceDelimiterWithComma(modifiedInput, modifiedInput, delimiter);
+            free(delimiter);
+            return 1;
+        }
     }
+    strcpy(modifiedInput, input);
+    
     return 0;
 }
 
@@ -98,79 +118,46 @@ int SumNumbers(const char* numbers) {
     return sum;
 }
 
-void throw_exception(const char* message) {
-    printf("%s\n", message);
-    longjmp(buf, 1);
-}
-void printExeptionIfNegativeNumber(const char* input) {
-    char negatives[256] = "";
-    char* inputCopy = strdup(input);
-    char* token = strtok(inputCopy, ",");
-
-    while (token != NULL) {
-        int num = atoi(token);
-        if (num < 0) {
-            if (strlen(negatives) > 0) {
-                strcat(negatives, ", ");
-            }
-            char numStr[12];
-            sprintf(numStr, "%d", num);
-            strcat(negatives, numStr);
-        }
-        
-        token = strtok(NULL, ",");
-    }
-
-    free(inputCopy);
-
-    if (strlen(negatives) > 0) {
-        char message[512];
-        sprintf(message, "negatives not allowed: %s", negatives);
-        throw_exception(message);
-    }
-}
-
-int ReturnZeroForEmptyInput() {
+int ReturnZeroForEmptyInput(const char* numbers) {
     return 0;
 }
 
 typedef int (*CheckFunction)(const char*, char*);
+typedef int (*ResultFunction)(char*);
+
+typedef struct {
+    CheckFunction checkFunction;
+    ResultFunction resultFunction;
+    int enabled;
+} Check;
 
 int add(const char* numbers) {
     int ReturnValue = 0;
     char* modifiedNumbers = (char*)malloc(strlen(numbers) + 1);
 
-    CheckFunction checks[] = {
-        (CheckFunction)CheckEmptyInput,
-        (CheckFunction)CheckForCustomDelimiterAndReplaceWithComma,
-        (CheckFunction)CheckNewlineDelimiterAndReplaceWithComma,
-        (CheckFunction)CheckForNegativeInput
+    Check checks[] = {
+    { (CheckFunction)CheckEmptyInput, (ResultFunction)ReturnZeroForEmptyInput, 0 },
+    { (CheckFunction)CheckForCustomDelimiterAndReplaceWithComma, (ResultFunction)SumNumbers, 0 },
+    { (CheckFunction)CheckNewlineDelimiterAndReplaceWithComma, (ResultFunction)SumNumbers, 0 },
+    { (CheckFunction)CheckForNegativeInput, (ResultFunction)printExeptionIfNegativeNumber, 0 }
     };
 
     for (int i = 0; i < 4; i++) {
-        if (checks[i](numbers, modifiedNumbers)) {
-            switch (i) {
-                case 0:
-                    ReturnValue = ReturnZeroForEmptyInput();
-                    break;
-                case 1:
-                    ReturnValue = SumNumbers(modifiedNumbers);
-                    break;
-                case 2:
-                    ReturnValue = SumNumbers(modifiedNumbers);
-                    break;
-                case 3:
-                   printExeptionIfNegativeNumber(numbers);
-                    break;
+        checks[i].enabled = checks[i].checkFunction(numbers, modifiedNumbers);
+        if (checks[i].enabled) {
+            if (checks[i].resultFunction != NULL) {
+                ReturnValue = checks[i].resultFunction(modifiedNumbers);
             }
             break;
         }
     }
 
     if (ReturnValue == 0 && !CheckForNegativeInput(numbers)) {
-       ReturnValue = SumNumbers(numbers);
+        ReturnValue = SumNumbers(numbers);
     }
 
     free(modifiedNumbers);
     return ReturnValue;
+
+ 
 }
