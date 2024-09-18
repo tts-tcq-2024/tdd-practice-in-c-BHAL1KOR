@@ -151,7 +151,7 @@ int add(const char* numbers) {
             break;
         }
     }
-    ReturnSumIfDefaultDelimeter(ReturnValue);    
+    ReturnSumIfDefaultDelimeter(numbers, ReturnValue);    
 
     free(modifiedNumbers);
     return ReturnValue;
