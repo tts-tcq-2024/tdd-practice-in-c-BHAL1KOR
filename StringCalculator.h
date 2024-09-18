@@ -130,7 +130,7 @@ int ReturnSumIfDefaultDelimeter(const char* numbers, int ReturnValue) {
     if (ReturnValue == 0 ) {
         ReturnValue = SumNumbers(numbers);
     }
-    return ReturnValue
+    return ReturnValue;
 }
 
 int add(const char* numbers) {
