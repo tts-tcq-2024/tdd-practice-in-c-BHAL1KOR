@@ -1,115 +1,177 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
+#include "pch.h"
+#include <setjmp.h>
+jmp_buf buf;
 
-#define CONDITION_NOT_MEET -1
 
-void printExeptionIfNegativeNumber(int foundNegative, const char* message) {
-    if (foundNegative) {
-        printf("Negatives not allowed: %s\n", message);
-        exit(1);
+
+int CheckEmptyInput(const char* input) {
+    return (input == NULL || strcmp(input, "") == 0) ? 1 : 0;
+}
+
+int CheckForNegativeInput(const char* input) {
+    return (strstr(input, "-") != NULL);
+}
+
+// Function to get the actual delimiter speicfied within []
+void ExtractActualDelimiter(const char* delimiter, char* actualDelimiter) {
+    size_t delimiterLength = strlen(delimiter);
+
+    if (delimiter[0] == '[' && delimiter[delimiterLength - 1] == ']') {
+        strncpy(actualDelimiter, delimiter + 1, delimiterLength - 2);
+        actualDelimiter[delimiterLength - 2] = '\0';
+    }
+    else {
+        strcpy(actualDelimiter, delimiter);
     }
 }
 
-int CheckEmptyOrNullOrZeroInput(const char* numbers) {
-    if (numbers == NULL || *numbers == '\0') {
-        return 0;
-    }
-    return CONDITION_NOT_MEET;
-}
+void ReplaceDelimiterWithComma(char* input, char* output, const char* delimiter) {
+    size_t delimiterLength = strlen(delimiter);
+    char* actualDelimiter = (char*)malloc(delimiterLength + 1);
 
-void CheckForNegativeNumbers(const char* numbers) {
-    int foundNegative = 0;
-    char message[100] = "";
-    char temp[10];
-    const char* ptr = numbers;
+    ExtractActualDelimiter(delimiter, actualDelimiter);
+    size_t actualDelimiterLength = strlen(actualDelimiter);
 
-    while (*ptr) {
-        if (*ptr == '-') {
-            foundNegative = 1;
-            int num = atoi(ptr);
-            sprintf(temp, "%d ", num);
-            strcat(message, temp);
+    while (*input) {
+        if (strncmp(input, actualDelimiter, actualDelimiterLength) == 0) {
+            *output = ',';
+            input += actualDelimiterLength;
         }
-        ptr++;
+        else {
+            *output = *input;
+            input++;
+        }
+        output++;
     }
-    printExeptionIfNegativeNumber(foundNegative, message);
+    *output = '\0';
+
+    free(actualDelimiter);
 }
 
-int SumWithCustomDelimiter(const char* numbers, const char* delimiter) {
-    int sum = 0;
-    char* token;
-    char* numbersCopy = strdup(numbers);
-    token = strtok(numbersCopy, delimiter);
-    while (token != NULL) {
-        sum += atoi(token);
-        token = strtok(NULL, delimiter);
-    }
-    free(numbersCopy);
-    return sum;
-}
-
-int DetectCustomDelimiter(const char* numbers, char* delimiter) {
-    if (strncmp(numbers, "//", 2) == 0) {
-        const char* end = strstr(numbers, "\n");
-        if (end != NULL) {
-            strncpy(delimiter, numbers + 2, end - (numbers + 2));
-            delimiter[end - (numbers + 2)] = '\0';
-            return 1;
+int CheckNewlineDelimiterAndReplaceWithComma(const char* input, char* modifiedInput) {
+    int foundNewline = 0;
+    for (int i = 0; input[i] != '\0'; i++) {
+        if (input[i] == '\n') {
+            foundNewline = 1;
+            ReplaceDelimiterWithComma((char*)input, modifiedInput, "\n");
+            break;
         }
     }
-    return CONDITION_NOT_MEET;
+    return foundNewline;
 }
 
-int HandleCustomDelimiter(const char* numbers) {
-    char delimiter[100] = {0};
-    if (DetectCustomDelimiter(numbers, delimiter) != CONDITION_NOT_MEET) {
-        return SumWithCustomDelimiter(numbers + strlen(delimiter) + 3, delimiter);
+int CheckForCustomDelimiterAndReplaceWithComma(const char* input, char* modifiedInput) {
+    if (input[0] == '/' && input[1] == '/') {
+        const char* delimiterEnd = strstr(input, "\n");
+        size_t delimiterLength = delimiterEnd - input - 2;
+        char* delimiter = (char*)malloc(delimiterLength + 1);
+        strncpy(delimiter, input + 2, delimiterLength);
+        delimiter[delimiterLength] = '\0';
+        strcpy(modifiedInput, delimiterEnd + 1);
+        printf("identified delimeter = %s\r\n", delimiter);
+        ReplaceDelimiterWithComma(modifiedInput, modifiedInput, delimiter);
+        free(delimiter);
+        return 1;
     }
-    return CONDITION_NOT_MEET;
+    return 0;
 }
 
-int HandleNewlineDelimiter(const char* numbers) {
-    return CONDITION_NOT_MEET; // Placeholder for handling newline delimiter
+int IgnoreNumbersGreaterThan1000(int num) {
+    return num <= 1000 ? num : 0;
 }
 
-int HandleDefaultDelimiter(const char* numbers) {
-    return CONDITION_NOT_MEET; // Placeholder for handling default delimiter
-}
-
-int CheckForDelimeterAndComputeSum(const char* numbers) {
-    int result = HandleCustomDelimiter(numbers);
-    if (result != CONDITION_NOT_MEET) {
-        return result;
-    }
-    result = HandleNewlineDelimiter(numbers);
-    if (result != CONDITION_NOT_MEET) {
-        return result;
-    }
-    return HandleDefaultDelimiter(numbers);
-}
-
-int SumWithDefaultDelimiter(const char* numbers) {
+int SumNumbers(const char* numbers) {
     int sum = 0;
-    char* token;
     char* numbersCopy = strdup(numbers);
-    token = strtok(numbersCopy, ",");
+    char* token = strtok(numbersCopy, ",");
+
     while (token != NULL) {
-        sum += atoi(token);
+        int num = atoi(token);
+        sum += IgnoreNumbersGreaterThan1000(num);
         token = strtok(NULL, ",");
     }
+
     free(numbersCopy);
     return sum;
 }
 
+void throw_exception(const char* message) {
+    printf("%s\n", message);
+    longjmp(buf, 1);
+}
+void printExeptionIfNegativeNumber(const char* input) {
+    char negatives[256] = "";
+    char* inputCopy = strdup(input);
+    char* token = strtok(inputCopy, ",");
+
+    while (token != NULL) {
+        int num = atoi(token);
+        if (num < 0) {
+            if (strlen(negatives) > 0) {
+                strcat(negatives, ", ");
+            }
+            char numStr[12];
+            sprintf(numStr, "%d", num);
+            strcat(negatives, numStr);
+        }
+        
+        token = strtok(NULL, ",");
+    }
+
+    free(inputCopy);
+
+    if (strlen(negatives) > 0) {
+        char message[512];
+        sprintf(message, "negatives not allowed: %s", negatives);
+        throw_exception(message);
+    }
+}
+
+int ReturnZeroForEmptyInput() {
+    return 0;
+}
+
+typedef int (*CheckFunction)(const char*, char*);
+
 int add(const char* numbers) {
-    int result = CheckEmptyOrNullOrZeroInput(numbers);
-    if (result != CONDITION_NOT_MEET) return result;
+    int ReturnValue = 0;
+    char* modifiedNumbers = (char*)malloc(strlen(numbers) + 1);
 
-    CheckForNegativeNumbers(numbers);
+    CheckFunction checks[] = {
+        (CheckFunction)CheckEmptyInput,
+        (CheckFunction)CheckForCustomDelimiterAndReplaceWithComma,
+        (CheckFunction)CheckNewlineDelimiterAndReplaceWithComma,
+        (CheckFunction)CheckForNegativeInput
+    };
 
-    result = CheckForDelimeterAndComputeSum(numbers);
-    if (result != CONDITION_NOT_MEET) return result;
+    for (int i = 0; i < 4; i++) {
+        if (checks[i](numbers, modifiedNumbers)) {
+            switch (i) {
+                case 0:
+                    ReturnValue = ReturnZeroForEmptyInput();
+                    break;
+                case 1:
+                    ReturnValue = SumNumbers(modifiedNumbers);
+                    break;
+                case 2:
+                    ReturnValue = SumNumbers(modifiedNumbers);
+                    break;
+                case 3:
+                   printExeptionIfNegativeNumber(numbers);
+                    break;
+            }
+            break;
+        }
+    }
 
-    return SumWithDefaultDelimiter(numbers);
+    if (ReturnValue == 0 && !CheckForNegativeInput(numbers)) {
+       ReturnValue = SumNumbers(numbers);
+    }
+
+    free(modifiedNumbers);
+    return ReturnValue;
 }
