@@ -3,6 +3,15 @@
 #include <string.h>
 #include <ctype.h>
 
+typedef int (*CheckFunction)(const char*, char*);
+typedef int (*ResultFunction)(char*);
+
+typedef struct {
+    CheckFunction checkFunction;
+    ResultFunction resultFunction;
+    int enabled;
+} StringCalculator;
+
 int CheckEmptyInput(const char* input) {
     return (input == NULL || strcmp(input, "") == 0) ? 1 : 0;
 }
@@ -26,9 +35,7 @@ int printExeptionIfNegativeNumber(char* numbers) {
     }
     strcat(buffer, "\n");
     printf("%s", buffer);
-    return 1;
-}
-
+ }
 
 // Function to get the actual delimiter specified within []
 void ExtractActualDelimiter(const char* delimiter, char* actualDelimiter) {
@@ -68,6 +75,7 @@ void ReplaceDelimiterWithComma(char* input, char* output, const char* delimiter)
 
 int CheckNewlineDelimiterAndReplaceWithComma(const char* input, char* modifiedInput) {
     int foundNewline = 0;
+    strcpy(modifiedInput, input);
     for (int i = 0; input[i] != '\0'; i++) {
         if (input[i] == '\n') {
             foundNewline = 1;
@@ -75,28 +83,22 @@ int CheckNewlineDelimiterAndReplaceWithComma(const char* input, char* modifiedIn
             break;
         }
     }
-    if (!foundNewline) {
-        strcpy(modifiedInput, input);
-    }
     return foundNewline;
 }
 
 int CheckForCustomDelimiterAndReplaceWithComma(const char* input, char* modifiedInput) {
     if (input[0] == '/' && input[1] == '/') {
-        const char* delimiterEnd = strstr(input, "\n");
-        if (delimiterEnd != NULL) {
-            size_t delimiterLength = delimiterEnd - input - 2;
-            char* delimiter = (char*)malloc(delimiterLength + 1);
-            strncpy(delimiter, input + 2, delimiterLength);
-            delimiter[delimiterLength] = '\0';
-            strcpy(modifiedInput, delimiterEnd + 1);
-            ReplaceDelimiterWithComma(modifiedInput, modifiedInput, delimiter);
-            free(delimiter);
-            return 1;
-        }
+        const char* delimiterEnd = strstr(input, "\n"); 
+        size_t delimiterLength = delimiterEnd - input - 2;
+        char* delimiter = (char*)malloc(delimiterLength + 1);
+        strncpy(delimiter, input + 2, delimiterLength);
+        delimiter[delimiterLength] = '\0';
+        strcpy(modifiedInput, delimiterEnd + 1);
+        ReplaceDelimiterWithComma(modifiedInput, modifiedInput, delimiter);
+        free(delimiter);
+        return 1;        
     }
-    strcpy(modifiedInput, input);
-    
+    strcpy(modifiedInput, input);   
     return 0;
 }
 
@@ -123,20 +125,19 @@ int ReturnZeroForEmptyInput(const char* numbers) {
     return 0;
 }
 
-typedef int (*CheckFunction)(const char*, char*);
-typedef int (*ResultFunction)(char*);
-
-typedef struct {
-    CheckFunction checkFunction;
-    ResultFunction resultFunction;
-    int enabled;
-} Check;
+//Executes this function when delimeter present in input is default , 
+int ReturnSumIfDefaultDelimeter(const char* numbers, int ReturnValue) {
+    if (ReturnValue == 0 ) {
+        ReturnValue = SumNumbers(numbers);
+    }
+    return ReturnValue
+}
 
 int add(const char* numbers) {
     int ReturnValue = 0;
     char* modifiedNumbers = (char*)malloc(strlen(numbers) + 1);
 
-    Check checks[] = {
+    StringCalculator StringCalculatorVar[] = {
     { (CheckFunction)CheckEmptyInput, (ResultFunction)ReturnZeroForEmptyInput, 0 },
     { (CheckFunction)CheckForCustomDelimiterAndReplaceWithComma, (ResultFunction)SumNumbers, 0 },
     { (CheckFunction)CheckNewlineDelimiterAndReplaceWithComma, (ResultFunction)SumNumbers, 0 },
@@ -144,16 +145,13 @@ int add(const char* numbers) {
     };
 
     for (int i = 0; i < 4; i++) {
-        checks[i].enabled = checks[i].checkFunction(numbers, modifiedNumbers);
-        if (checks[i].enabled) {
-            ReturnValue = checks[i].resultFunction(modifiedNumbers);
+        StringCalculatorVar[i].enabled = checks[i].checkFunction(numbers, modifiedNumbers);
+        if (StringCalculatorVar[i].enabled) {
+            ReturnValue = StringCalculatorVar[i].resultFunction(modifiedNumbers);
             break;
         }
     }
-
-    if (ReturnValue == 0 ) {
-        ReturnValue = SumNumbers(numbers);
-    }
+    ReturnSumIfDefaultDelimeter(ReturnValue);    
 
     free(modifiedNumbers);
     return ReturnValue;
