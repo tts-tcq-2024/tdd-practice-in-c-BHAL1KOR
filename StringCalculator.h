@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "pch.h"
 #include <setjmp.h>
 jmp_buf buf;
 
